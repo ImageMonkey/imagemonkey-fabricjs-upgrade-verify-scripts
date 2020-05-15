@@ -9,6 +9,7 @@ import (
 	"errors"
 	"time"
 	"github.com/jackc/pgx/v4"
+	"math/rand"
 )
 
 
@@ -49,7 +50,7 @@ func getAnnotationIds(conn *pgx.Conn) ([]string, error) {
 								`SELECT a.uuid 
 								 FROM image_annotation a
 								 JOIN image i ON i.id = a.image_id
-								 WHERE i.unlocked = true`)
+								 WHERE i.unlocked = true AND a.auto_generated=false`)
 	if err != nil {
 		return annotationIds, err
 	}
@@ -70,11 +71,13 @@ func getAnnotationIds(conn *pgx.Conn) ([]string, error) {
 func main() {
 	outputFolder := flag.String("output-folder", "", "Output Folder")
 	snapshotScriptPath := flag.String("snapshot-script", "", "Path to snapshot script")
+	num := flag.Int("num", -1, "Number of annotations")
+	seed := flag.Int64("seed", 0, "Seed")
 
 	flag.Parse()
 
 	if *outputFolder == "" {
-		log.Fatal("Please provide a output folder with --output-folder!")
+		log.Fatal("Please provide a output folder with -output-folder!")
 	}
 
 	if _, err := os.Stat(*outputFolder); os.IsNotExist(err) {
@@ -82,7 +85,11 @@ func main() {
 	}
 
 	if *snapshotScriptPath == "" {
-		log.Fatal("Please provide a snapshot script with --snapshot-script!")
+		log.Fatal("Please provide a snapshot script with -snapshot-script!")
+	}
+
+	if *num != -1 && *seed == 0 {
+		log.Fatal("Please provide a seed with -seed!")
 	}
 
 	if _, err := os.Stat(*snapshotScriptPath); os.IsNotExist(err) {
@@ -101,11 +108,27 @@ func main() {
 		log.Fatal("Couldn't get annotation ids: ", err.Error())
 	}
 
-	for _, annotationId := range annotationIds {
-		path := *outputFolder + "/" + annotationId + ".png"
-		err := runSnapshotScript(*snapshotScriptPath, annotationId, path)
-		if err != nil {
-			log.Fatal(err.Error())
+	if *num == -1 {
+		for _, annotationId := range annotationIds {
+			path := *outputFolder + "/" + annotationId + ".png"
+			err := runSnapshotScript(*snapshotScriptPath, annotationId, path)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+		}
+	} else {
+		r := rand.NewSource(*seed)
+		for i := 0; i < *num; i++ {
+			pseudoRandomNumberGenerator := rand.New(r)
+			pseudoRandomNumber := pseudoRandomNumberGenerator.Intn(len(annotationIds)-1)
+			
+			annotationId := annotationIds[pseudoRandomNumber]
+			path := *outputFolder + "/" + annotationId + ".png"
+			err := runSnapshotScript(*snapshotScriptPath, annotationId, path)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+
 		}
 	}
 }

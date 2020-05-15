@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--folder1", type=str, required=True, help="folder 1")
     parser.add_argument("--folder2", type=str, required=True, help="folder 2")
-    parser.add_argument("--treshold", type=float, required=False, default=0.99, help="treshold")
+    parser.add_argument("--treshold", type=float, required=False, default=0.95, help="treshold")
 
     args = parser.parse_args()
 
