@@ -45,5 +45,5 @@ Therefore, run:
 This visually compares the screenshot from before upgrading fabric.js to the one after upgrading fabric.js. With the `--threshold` parameter it's possible to
 specify how similar the images need to be (if you want to strive for identical (i.e all pixels are matching) images, use `1.0`). 
 
-If all annotations match, the new fabric.js release is likely to regression free (at least for the ImageMonkey usecase ;-))
+If all annotations match, the new fabric.js release is likely to be regression free (at least for the ImageMonkey usecase ;-))
 
